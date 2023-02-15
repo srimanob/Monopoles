@@ -1,0 +1,4 @@
+<bin name="monoNtupleAnalyzer" file="*.cc" >
+  <use name="root"/>
+  <flags CXXFLAGS="-Wno-error=unused-variable"/>
+</bin>

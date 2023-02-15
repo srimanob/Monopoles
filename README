@@ -1,0 +1,16 @@
+##################################################################
+        CMS Monopole UserCode README file
+##################################################################
+
+
+How to setup this code:
+------------------------------------------------------------------
+Check out this code from CVS in the src directory of your CMSSW 
+release setup ($CMSSW_BASE/src).  Then make a symbolic link to the
+Monopole directory under the UserCode directory.
+  ln -s UserCode/Monopoles/ 
+
+Now from this top src directory ($CMSSW_BASE/src) one can use 
+"scram b" to build the packages.
+
+

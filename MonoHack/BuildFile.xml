@@ -1,0 +1,8 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="SimDataFormats/GeneratorProducts"/>
+<use name="Monopoles/MonoAlgorithms"/>
+<use name="SimGeneral/HepPDTRecord"/>
+<flags EDM_PLUGIN="1"/>
+

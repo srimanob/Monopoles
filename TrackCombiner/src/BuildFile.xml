@@ -1,0 +1,11 @@
+<use name="TrackingTools/TrackRefitter"/>
+<use name="FWCore/Framework"/>
+<use name="clhep"/>
+<use name="root"/>
+<use name="rootcore"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
+<use name="Monopoles/MonoAlgorithms"/>
+<export>
+   <lib name="1"/>
+</export>
+<flags CXXFLAGS="-Wno-error=unused-variable"/>

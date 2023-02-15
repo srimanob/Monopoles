@@ -1,0 +1,9 @@
+<use name="TrackingTools/TrackRefitter"/>
+<use name="FWCore/Framework"/>
+<use name="clhep"/>
+<use name="root"/>
+<use name="rootcore"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
+
+<flags EDM_PLUGIN="1"/>
+<flags CXXFLAGS="-Wno-error=unused-variable"/>

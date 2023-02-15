@@ -1,0 +1,460 @@
+
+
+
+template<class T, class S>
+MonoSimTracker<T,S>::MonoSimTracker(const edm::Event &ev, const edm::EventSetup &es, const subdet s )
+  : m_subdet(s)
+{
+  fillHits(ev,es);
+}
+
+
+
+
+template<class T, class S>
+MonoSimTracker<T,S>::~MonoSimTracker() 
+{ }
+
+
+//===============================================================================
+// Ecal specializations
+//===============================================================================
+template<>
+void MonoSimTracker<PCaloHit,CaloGeometry>::fillHits(const edm::Event &ev, const edm::EventSetup &es)
+{
+
+  edm::ESHandle<CaloGeometry> calo;
+  es.get<CaloGeometryRecord>().get(calo);
+  m_geo = (const CaloGeometry*)calo.product();
+
+  edm::InputTag simTracksTag("g4SimHits","");
+  edm::Handle<edm::SimTrackContainer> SimTracks;
+  ev.getByLabel(simTracksTag,SimTracks);
+
+
+  edm::SimTrackContainer::const_iterator tit = SimTracks->begin();
+
+
+  //edm::InputTag caloHitsTag("g4SimHits","EcalHitsEB");
+  edm::Handle<edm::PCaloHitContainer> CaloHits;
+  if ( m_subdet == EcalEB )  ev.getByLabel(edm::InputTag("g4SimHits","EcalHitsEB"),CaloHits);
+  else if ( m_subdet == EcalEE ) ev.getByLabel(edm::InputTag("g4SimHits","EcalHitsEE"),CaloHits);
+
+
+  edm::PCaloHitContainer::const_iterator cit = CaloHits->begin();
+  for ( ; cit != CaloHits->end(); cit++ ) {
+
+    tit = SimTracks->begin();
+    while ( (*tit).trackId() != (unsigned)(*cit).geantTrackId() && tit != SimTracks->end() ) tit++;
+    if ( tit == SimTracks->end() || abs((*tit).type()) != MONOID ) continue;
+
+
+    if ( (*tit).type() == MONOID ) {
+       m_hits[monopole].push_back( *cit );
+       m_idMapSum[monopole][(*cit).id()] += (*cit).energy();
+    }
+    else if ( (*tit).type() == -MONOID ) {
+      m_hits[anti_monopole].push_back( *cit );
+      m_idMapSum[anti_monopole][(*cit).id()] += (*cit).energy();
+    }
+   
+  }  
+
+}
+
+
+
+//----------------------------------------------------------------------------
+// Ecal access methods
+//----------------------------------------------------------------------------
+
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::eta(const MonoEnum m,const unsigned i) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+
+  if ( m_subdet == EcalEB ) {
+    EBDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ieta(),detId.iphi()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().eta();
+  } else if ( m_subdet == EcalEE ) {
+    EEDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ix(),detId.iy(),detId.zside()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().eta();
+  }
+
+  return -999;
+}
+
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::phi(const MonoEnum m, const unsigned i) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+  if ( m_subdet == EcalEB ) {
+    EBDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ieta(),detId.iphi()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().phi();
+  } else if ( m_subdet == EcalEE ){
+    EEDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ix(),detId.iy(),detId.zside()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().phi();
+  }
+
+  return -999;
+}
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::x(const MonoEnum m,const unsigned i ) const
+{ 
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+  if ( m_subdet == EcalEB ) {
+    EBDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ieta(),detId.iphi()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().x();
+  } else if ( m_subdet == EcalEE ) {
+    EEDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ix(),detId.iy(),detId.zside()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().x();
+  }
+
+  return -999;
+}
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::y(const MonoEnum m,const unsigned i ) const
+{ 
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+  if ( m_subdet == EcalEB ) {
+    EBDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ieta(),detId.iphi()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().y();
+  } else if ( m_subdet == EcalEE ) {
+    EEDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ix(),detId.iy(),detId.zside()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().y();
+  }
+  
+  return -999;
+}
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::z(const MonoEnum m,const unsigned i ) const
+{ 
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+  if ( m_subdet == EcalEB ) {
+    EBDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ieta(),detId.iphi()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().z();
+  } else if ( m_subdet == EcalEE ) {
+    EEDetId detId( m_hits[m][i].id() );
+    assert( detId.validDetId(detId.ix(),detId.iy(),detId.zside()) );
+    const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+    if ( cell ) return cell->getPosition().z();
+  }
+
+  return -999;
+}
+
+
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::energy(const MonoEnum m, const unsigned i) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999;
+
+  return m_hits[m][i].energy();
+
+}
+
+
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::time(const MonoEnum m,const unsigned i) const
+{
+  
+  if ( i >= m_hits[m].size() ) return -999;
+
+  return m_hits[m][i].time();
+
+}
+
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::eta(const unsigned i) const
+{
+
+  EBDetId detId( i );
+  const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+
+  if ( cell ) return cell->getPosition().eta();
+
+  return -999.;
+
+}
+
+template<>
+const double MonoSimTracker<PCaloHit,CaloGeometry>::phi(const unsigned i) const
+{
+
+  EBDetId detId( i );
+  const CaloCellGeometry *cell = m_geo->getGeometry( detId );
+
+  if ( cell ) return cell->getPosition().phi();
+
+  return -999.;
+
+}
+
+
+
+//===============================================================================
+// Pixel specializations
+//===============================================================================
+template<>
+void MonoSimTracker<PSimHit,TrackerGeometry>::fillHits(const edm::Event &ev, const edm::EventSetup &es)
+{
+
+  edm::ESHandle<TrackerGeometry> trackerHandle;
+  es.get<TrackerDigiGeometryRecord>().get(trackerHandle);
+  m_geo = trackerHandle.product();
+
+  edm::InputTag simTrackHitTag("g4SimHits","TrackerHitsPixelBarrelLowTof");
+  edm::Handle<edm::PSimHitContainer> SimHits;
+  ev.getByLabel(simTrackHitTag,SimHits);
+
+  edm::PSimHitContainer::const_iterator hit = SimHits->begin();
+  for ( ; hit != SimHits->end(); ++hit ) {
+
+    if ( abs((*hit).particleType()) != MONOID ) continue;
+
+    if ( (*hit).particleType() == MONOID ) {
+      m_hits[monopole].push_back( *hit );
+      m_idMapSum[monopole][(*hit).detUnitId()] += (*hit).energyLoss();
+    } 
+    else if ( (*hit).particleType() == -MONOID ) {
+      m_hits[anti_monopole].push_back( *hit );
+      m_idMapSum[anti_monopole][(*hit).detUnitId()] += (*hit).energyLoss();
+    }
+
+  }
+
+}
+
+
+
+//----------------------------------------------------------------------------
+// Pixel access methods
+//----------------------------------------------------------------------------
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::eta(const MonoEnum m,const unsigned i ) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999; 
+
+  DetId id = DetId( m_hits[m][i].detUnitId() );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( m_hits[m][i].localPosition() ).eta();
+  }
+
+  return -999;
+
+}
+
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::phi(const MonoEnum m,const unsigned i ) const
+{ 
+
+  if ( i >= m_hits[m].size() ) return -999; 
+  DetId id = DetId( m_hits[m][i].detUnitId() );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( m_hits[m][i].localPosition() ).phi();
+  }
+
+  return -999;
+
+}
+
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::x(const MonoEnum m,const unsigned i ) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999; 
+  DetId id = DetId( m_hits[m][i].detUnitId() );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( m_hits[m][i].localPosition() ).x();
+  }
+
+  return -999;
+
+}
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::y(const MonoEnum m,const unsigned i ) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999; 
+  DetId id = DetId( m_hits[m][i].detUnitId() );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( m_hits[m][i].localPosition() ).y();
+  }
+
+  return -999;
+
+}
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::z(const MonoEnum m,const unsigned i ) const
+{
+
+  if ( i >= m_hits[m].size() ) return -999; 
+  DetId id = DetId( m_hits[m][i].detUnitId() );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( m_hits[m][i].localPosition() ).z();
+  }
+
+  return -999;
+
+}
+
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::eta(const unsigned i ) const
+{
+
+  DetId id = DetId( i );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  LocalPoint p(0.,0.,0.);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( p ).eta();
+  }
+
+  return -999;
+
+}
+
+
+
+template<>
+const double MonoSimTracker<PSimHit,TrackerGeometry>::phi(const unsigned i ) const
+{
+
+  DetId id = DetId( i );
+
+  const GeomDetUnit *detUnit = m_geo->idToDetUnit(id);
+
+  LocalPoint p(0.,0.,0.);
+
+  if ( detUnit ) {
+    return detUnit->toGlobal( p ).phi();
+  }
+
+  return -999;
+
+}
+
+
+//===============================================================================
+// Generic templates
+//===============================================================================
+template<class T, class S>
+void MonoSimTracker<T,S>::fillHits(const edm::Event &ev, const edm::EventSetup &es)
+{ 
+
+}
+
+
+
+//----------------------------------------------------------------------------
+// Generic access methods
+//----------------------------------------------------------------------------
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::eta(const MonoEnum m,const unsigned i ) const
+{ return 0; }
+
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::phi(const MonoEnum m,const unsigned i ) const
+{ return 0; }
+
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::x(const MonoEnum m,const unsigned i ) const
+{ return 0; }
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::y(const MonoEnum m,const unsigned i ) const
+{ return 0; }
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::z(const MonoEnum m,const unsigned i ) const
+{ return 0; }
+
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::energy(const MonoEnum m,const unsigned i) const
+{ return 0; }
+
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::time(const MonoEnum m,const unsigned i) const
+{ return 0; }
+
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::eta(const unsigned i) const
+{ return 0; }
+
+template<class T, class S>
+const double MonoSimTracker<T,S>::phi(const unsigned i) const
+{ return 0; }
+
+
+template<class T, class S>
+const T* MonoSimTracker<T,S>::hit(const MonoEnum m,const unsigned i) const
+{
+  if ( i >= m_hits[m].size() ) return NULL;
+  else return &m_hits[m][i];
+}
