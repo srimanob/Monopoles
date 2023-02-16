@@ -16,3 +16,13 @@ To make ntuple:
 To do analysis:
 
 To create PR:
+Fork the git Monopoles respository
+```
+cd Monopoles/
+git checkout -b BRANCH_NAME
+===edit your files===
+git commit -m "Update" -a
+git init
+git remote set-url origin git@github.com:yourusername/Monopoles.git
+git push origin 20230216_UpdateWorkAreaReadMe
+```
