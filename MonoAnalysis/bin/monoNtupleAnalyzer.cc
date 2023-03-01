@@ -573,7 +573,7 @@ int main ( int argc, char **argv ) {
   vector<double> * f51 = 0;
   vector<double> * f15 = 0;  
   vector<double> * e55 = 0;
-  vector<double> * met = 0;
+  double met = 0;
   vector<double> * hIso = 0;
   vector<double> * eta = 0;
   vector<double> * phi = 0;
@@ -594,7 +594,7 @@ int main ( int argc, char **argv ) {
   tree->SetBranchAddress("cand_f51",&f51);
   tree->SetBranchAddress("cand_f15",&f15);
   tree->SetBranchAddress("cand_e55",&e55);
-  tree->SetBranchAddress("cand_met",&met);
+  //tree->SetBranchAddress("mpt_pt",met);
   tree->SetBranchAddress("cand_HIso",&hIso);
   tree->SetBranchAddress("cand_XYPar0",&xyp0);
   tree->SetBranchAddress("cand_XYPar1",&xyp1);
@@ -625,6 +625,9 @@ int main ( int argc, char **argv ) {
   for ( unsigned ev=0; ev != nEvents; ev++ ) {
     tree->GetEntry(ev);
     
+    //
+    met=100000.; //temporary met
+
     // build the candidate
     if ( nCandidates > candVec.size() ) candVec.resize(nCandidates);
     for ( unsigned i=0; i != nCandidates; i++ ) {
@@ -643,7 +646,7 @@ int main ( int argc, char **argv ) {
 				 (*f51)[i],
 				 (*f15)[i], 
 				 (*e55)[i],
-				 (*met)[i],
+				 met,
 				 (*hIso)[i],
 				 (*eta)[i],
 				 (*phi)[i]
