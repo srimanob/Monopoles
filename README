@@ -2,7 +2,7 @@
         CMS Monopole UserCode README file
 ##################################################################
 
-To create the working area:
+## To create the working area
 ```
 cmsrel CMSSW_10_6_23
 cd CMSSW_10_6_23/src/
@@ -11,14 +11,24 @@ git clone https://github.com/srimanob/Monopoles.git
 scram b -j 8
 ```
 
-To make ntuple:
+## To make ntuple
 
-To do analysis:
+## To do analysis:
+### (1) Using monoNtupleAnalyzer
 ```
 monoNtupleAnalyzer -i ntuple.root -o outFile.root
 ```
+For example,
+```
+monoNtupleAnalyzer -i /eos/cms/store/user/srimanob/monopole/13TeV/Legacy-NTUPLE-v2/merges/2018-1000.root -o output/MonoPhotonAnalysis_2018_1000__0_monoNtupleAnalyzer.root
+```
+### (2) Using MonoAnalyzerPhoton
+```
+root.exe -l -q 'src/MonoAnalyzerPhoton.cc("2018","1000",0,0)'
+```
+Ntuple files can be found at /eos/cms/store/user/srimanob/monopole/13TeV/Legacy-NTUPLE-v2/merges
 
-To create PR:
+## To create PR:
 Fork the git Monopoles respository
 ```
 cd Monopoles/
