@@ -27,5 +27,5 @@ git checkout -b BRANCH_NAME
 git commit -m "Update" -a
 git init
 git remote set-url origin git@github.com:yourusername/Monopoles.git
-git push origin 20230216_UpdateWorkAreaReadMe
+git push origin BRANCH_NAME
 ```
