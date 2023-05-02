@@ -69,6 +69,7 @@ public:
   
 private:
   vector<TH1*> plots_;
+  vector<bool> trg_values;
 };
 
 // Candidate
@@ -149,9 +150,11 @@ public:
     char name[50];
     sprintf(name,"%d",series_);
     string nm1base = "nm1_" + string(name) + "_";
+    cout << "ALUPAR: nm1base: " << nm1base << endl; 
     nm1Plots_.resize(nCuts_+1U); 
     
     string trgnm1name = nm1base + "HLT_";
+    //cout << "ALUPAR: trgnm1name: " << trgnm1name << endl;
     PlotSet & z = nm1Plots_[0];
     
     z.AddPlot(FracSatVNstrips,new TH2D((trgnm1name+"FracSatVNstrips").c_str(),"",100,0,1000,100,0,1));
@@ -170,7 +173,9 @@ public:
       PlotSet & z = nm1Plots_[c+1U];
       
       string cutnm1name = nm1base + cutName + "_";
-      
+      //cout << "ALUPAR: cutnm1name: " << cutnm1name << endl;
+
+
       z.AddPlot(FracSatVNstrips,new TH2D((cutnm1name+"FracSatVNstrips").c_str(),"",100,0,1000,100,0,1));
       z.AddPlot(DedXSig,new TH1D((cutnm1name+"dEdXSig").c_str(),"",100,0,30));
       z.AddPlot(RZcurv,new TH1D((cutnm1name+"RZcurv").c_str(),"",100,-10,10));
@@ -190,7 +195,10 @@ public:
     string cutFlowBase = "flow_" + string(name) + "_";
     string noCut = "HLT";
     string cutFlowName = cutFlowBase + noCut + "_";
-    
+    cout << "ALUPAR cutFlowName: " << cutFlowName << endl;
+
+
+
     PlotSet & y = cutFlow_[0];
     y.AddPlot(FracSatVNstrips,new TH2D((cutFlowName+"FracSatVNstrips").c_str(),"",100,0,1000,100,0,1));
     y.AddPlot(DedXSig,new TH1D((cutFlowName+"dEdXSig").c_str(),"",100,0,30));
@@ -208,6 +216,7 @@ public:
       PlotSet &z = cutFlow_[c+1U];
       
       cutFlowName = cutFlowBase + cutName + "_";
+      cout << "ALUPAR cutFlowName: " << cutFlowName << endl;
       
       z.AddPlot(FracSatVNstrips,new TH2D((cutFlowName+"FracSatVNstrips").c_str(),"",100,0,1000,100,0,1));
       z.AddPlot(DedXSig,new TH1D((cutFlowName+"dEdXSig").c_str(),"",100,0,30));
@@ -232,11 +241,65 @@ public:
   ~MonoCutFlow() { }
 
   // perform the analysis
-  void doAnalysis(bool trg, const vector<MonoCandidate> & cands) {
+ void new_doAnalysis(bool trg, const vector<MonoCandidate> & cands, unsigned nCandidates) {
+
+  // Apply the cuts
+ // if (cands.size() > 0) {
+ for(unsigned c=0;c<nCandidates;c++){
+    //cout << "nCandidates: " << nCandidates << endl;
+
+ 
+    const MonoCandidate & cand = cands[c];
+
+   // Get the results of the cuts (or sets of cuts)
+   const bool qualRes = evalQuality(cand);
+   const bool eRes = evalE(cand);
+   const bool f51Res = evalF51(cand);
+   const bool dEdXRes = evaldEdX(cand);
+
+   //cout << "ALUPAR: qualRes/eRes/f51Res/dEdXRes: " << qualRes << "/" << eRes << "/" << f51Res << "/" << dEdXRes << endl;
+  
+   // Apply the trigger
+   if (trg) {
+ 
+     // count the event
+     nm1Count_[0]++;
+
+     //cout << "ALUPAR nm1Count_[0]" <<  nm1Count_[0] << endl;
+
+     // Get the Plot HLT is 0
+     PlotSet & z = nm1Plots_[0];
+
+     z.GetPlot(DedXSig)->Fill(cand.dEdXSig_);
+   
+
+   } // end the if (trg)
+
+
+   //cout << "Start the no trigger events" << endl;
+   //nm1Count_[1]++;
+   //cout << "ALUPAR nm1Count_[1]" <<  nm1Count_[1] << endl;
+
+   //PlotSet & z = nm1Plots_[1];
+   //z.GetPlot(DedXSig)->Fill(cand.dEdXSig_);
+
+  
+   } // End of if (cands.size() > 0 )
+ 
+ 
+ } // End the new_doAnalysis 
+ 
+ 
+ 
+  void doAnalysis(bool trg, const vector<MonoCandidate> & cands, unsigned nCandidates ) {
+
 
     // apply all cuts
-    if ( cands.size() > 0 ) {
-      const MonoCandidate & cand = cands[0];
+    //if ( cands.size() > 0 ) {
+  
+     for(unsigned c=0;c<nCandidates;c++){
+
+      const MonoCandidate & cand = cands[c];
   
       // get the results of the cuts (or sets of cuts)
       const bool qualRes = evalQuality(cand);
@@ -249,6 +312,8 @@ public:
 
 	// count the event
 	nm1Count_[0]++;
+
+	//cout << "ALUPAR nm1Count_[0]: " << nm1Count_[0] << endl;
 	
 	// get the plot HLT is 0
 	PlotSet & z = nm1Plots_[0];
@@ -343,16 +408,33 @@ public:
 	z.GetPlot(ABCD)->Fill(cand.f51_,cand.dEdXSig_);
 
       }
+
+      // Apply only the trigger 
+      // if(TRG) CutFlowCand_TRG.push_back(cands);
+      
+
+      // Count the event
+      nm1Count_[5]++;
+
+      // Get the plot with only trigger is 5 
+      PlotSet & z = nm1Plots_[5];
+      z.GetPlot(DedXSig)->Fill(cand.dEdXSig_);
+
+
      
       // --- make plots along the cut flow ( in the order listed in cutNames_ )
       // **** MAKE SURE cutNames_ IS THE SAME ORDERING AS accepts!!!! ****
       // first is the trigger case
+      //cout << "ALUPAR trg: " << trg << endl;
       bool accept = trg;
 
-      if ( accept ) {
+       if ( accept ) {
 
-      	// count event in cut flow
+	       // count event in cut flow
       	cutFlowCount_[0]++;
+ 
+	//cout << "ALUPAR cutFlowCount_[0]: " << cutFlowCount_[0] << endl;
+
 
   	// fill the HLT plots
   	PlotSet & y = cutFlow_[0];
@@ -371,6 +453,7 @@ public:
       bool accepts[nCuts_] = { qualRes, eRes, f51Res, dEdXRes };
       
       for ( unsigned c=0; c != nCuts_; c++ ) {
+
   	accept = accept && accepts[c];
 	if ( accept )  {
 
@@ -394,6 +477,7 @@ public:
     }
 
   }
+
 
 
   // write histograms to the root file
@@ -436,6 +520,7 @@ private:
   // keep a set of plots for each n-1 and step in the cut flow
   vector<PlotSet>  nm1Plots_; // n-1 plots
   vector<PlotSet>  cutFlow_; // plot set for progressive cuts
+  vector<bool> trg_values;
 
   // keep information to dump tables of number of events passing cuts (N-1) and cut flow
   vector<unsigned> nm1Count_;
@@ -492,7 +577,7 @@ const double MonoCutFlow::rzp1Cut_ = 999;
 const double MonoCutFlow::rzp2Cut_ = 0.005;
 const double MonoCutFlow::eCut_ = 200.;
 const double MonoCutFlow::metCut_ = 0.;
-const double MonoCutFlow::f51Cut_ = 0.95;
+const double MonoCutFlow::f51Cut_ = 0.95;  // 0.95 // 0.85
 const double MonoCutFlow::f15Cut_ = 0.;
 const double MonoCutFlow::dEdXSigCut_ = 9;
 const double MonoCutFlow::f51LooseCut_ = 0.8;
@@ -518,12 +603,12 @@ int main ( int argc, char **argv ) {
   // trigger path list
   vector<string> trigNameList;
 
-  trigNameList.push_back("HLT_Photon175_v");
-  trigNameList.push_back("HLT_Photon200_v");
-  trigNameList.push_back("HLT_PFMET300_v");
-  trigNameList.push_back("HLT_MET200_v");
-  trigNameList.push_back("HLT_PFMET250_HBHECleaned_v");
-  trigNameList.push_back("HLT_CaloMET350_HBHECleaned_v");
+   trigNameList.push_back("HLT_Photon175_v");
+   trigNameList.push_back("HLT_Photon200_v");
+  //trigNameList.push_back("HLT_PFMET300_v");
+  //trigNameList.push_back("HLT_MET200_v");
+   trigNameList.push_back("HLT_PFMET250_HBHECleaned_v");
+   trigNameList.push_back("HLT_CaloMET350_HBHECleaned_v");
 
   string inFileName;
   string outFileName;
@@ -556,6 +641,8 @@ int main ( int argc, char **argv ) {
   // trigger branches
   vector<bool> * trigResults = 0;
   vector<string> * trigNames = 0; 
+  bool passHLT_Photon175;
+  bool passHLT_PFMET250_HBHECleaned;
 
   unsigned nCandidates;
   vector<double> * subHits = 0;
@@ -584,6 +671,8 @@ int main ( int argc, char **argv ) {
 
   tree->SetBranchAddress("trigResult",&trigResults); 
   tree->SetBranchAddress("trigNames",&trigNames);
+  tree->SetBranchAddress("passHLT_Photon175", &passHLT_Photon175);
+  tree->SetBranchAddress("passHLT_PFMET250_HBHECleaned", &passHLT_PFMET250_HBHECleaned);
 
   tree->SetBranchAddress("cand_N",&nCandidates);
   tree->SetBranchAddress("cand_dist",&dist);
@@ -612,12 +701,17 @@ int main ( int argc, char **argv ) {
 
   // create a MonoCutFlow for the case of no trigger
   MonoCutFlow noTriggerAnalysis("NoTRG",oFile);  
+  //MonoCutFlow HLT175_TriggerAnalysis("HLT_Photon175",oFile);
+  //MonoCutFlow HLTPFMET_TriggerAnalysis("HLT_PFMET250",oFile);
 
   // create a cut flow analysis object for each
   // interesting trigger path.
   vector<MonoCutFlow> triggerAnalyses;
   for ( unsigned i=0; i != nTriggerNames; i++ ) triggerAnalyses.push_back( MonoCutFlow(trigNameList[i],oFile) );
   
+  for ( unsigned i=0; i != nTriggerNames; i++ ) cout << "trigNameList[i]: " << trigNameList[i] << endl;  
+
+
   vector<MonoCandidate> candVec(10); 
 
   // begin the event loop
@@ -630,7 +724,9 @@ int main ( int argc, char **argv ) {
 
     // build the candidate
     if ( nCandidates > candVec.size() ) candVec.resize(nCandidates);
+    //cout << "nCandidates: " << nCandidates << endl;
     for ( unsigned i=0; i != nCandidates; i++ ) {
+      //cout << "i: " << i << endl;
       candVec[i] = MonoCandidate(
 				 (*subHits)[i],
 				 (*subSatHits)[i],
@@ -657,8 +753,16 @@ int main ( int argc, char **argv ) {
     sort(candVec.begin(),candVec.begin()+nCandidates);
     
     // do the analysis for no trigger selection
-    noTriggerAnalysis.doAnalysis(true,candVec);
-    
+    noTriggerAnalysis.doAnalysis(true,candVec,nCandidates);
+    //HLT175_TriggerAnalysis.doAnalysis(passHLT_Photon175, candVec);
+    //HLTPFMET_TriggerAnalysis.doAnalysis(passHLT_PFMET250_HBHECleaned, candVec);
+
+    // Apply the new_doAnalysis function
+    //noTriggerAnalysis.new_doAnalysis(true,candVec, nCandidates);
+
+
+
+
     // loop over triggers check if name is in the list
     const unsigned nTrigs = trigNames->size();
     for ( unsigned tr=0; tr != nTrigs; tr++ ) {
@@ -666,9 +770,9 @@ int main ( int argc, char **argv ) {
       for ( unsigned tn=0; tn != nTriggerNames; tn++ ) {
 	if ( trName.find(trigNameList[tn].c_str()) != string::npos ) {
 	  // a very verbose debug statement to print out (just in case)
-	  //cout << "trName " << trName << " " << trName.find(trigNameList[tn].c_str()) << " with result " << (*trigResults)[tr] << endl;	
-	  triggerAnalyses[tn].doAnalysis((*trigResults)[tr],candVec);
-
+	  //cout << "trName " << trName << " " << trName.find(trigNameList[tn].c_str()) << " with result " << (*trigResults)[tr] << endl; 0 or 1
+	  triggerAnalyses[tn].doAnalysis((*trigResults)[tr],candVec,nCandidates);
+	  //triggerAnalyses[tn].new_doAnalysis((*trigResults)[tr], candVec, nCandidates);
 	}
       }
     } 
@@ -676,6 +780,8 @@ int main ( int argc, char **argv ) {
 
   // write the plots to the output file
   noTriggerAnalysis.WritePlots(oFile);
+  //HLT175_TriggerAnalysis.WritePlots(oFile);
+  //HLTPFMET_TriggerAnalysis.WritePlots(oFile);
   for ( unsigned i=0; i != nTriggerNames; i++ ) {
     triggerAnalyses[i].WritePlots(oFile);
   }
@@ -687,6 +793,8 @@ int main ( int argc, char **argv ) {
   cout << "=====================================================" << endl;
   cout << "===== Dumping Cut Tables" << endl;
   noTriggerAnalysis.DumpTables();
+  //HLT175_TriggerAnalysis.DumpTables();
+  //HLTPFMET_TriggerAnalysis.DumpTables();
   cout << "-----------------------------------------------------" << endl;
   for ( unsigned i=0; i != nTriggerNames; i++ ) {
     triggerAnalyses[i].DumpTables();
