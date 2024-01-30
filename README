@@ -8,6 +8,7 @@ cmsrel CMSSW_10_6_23
 cd CMSSW_10_6_23/src/
 cmsenv
 git clone https://github.com/srimanob/Monopoles.git
+rm -rf Monopoles/MonoAnalyzerPhoton
 scram b -j 8
 ```
 
