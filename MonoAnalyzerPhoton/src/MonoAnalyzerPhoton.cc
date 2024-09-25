@@ -1122,6 +1122,7 @@ void MonoAnalyzerPhoton(string year, string mass,bool matching_option, int sys_o
 
 		}
 		else{
+                // Triggers, Combinations for 2017/2018
 			HLT200_TrgAnalysis.WritePlots(oFile);
 			HLT200_TrgAnalysis.SignalEff("HLT_Photon200",NEvents);
 			PFMET_TrgAnalysis.WritePlots(oFile);
