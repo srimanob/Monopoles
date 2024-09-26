@@ -1097,7 +1097,7 @@ void MonoAnalyzerPhoton(string year, string mass,bool matching_option, int sys_o
         noTrgAnalysis.SignalEff("NoTRG",NEvents);
         noTrgAnalysis.SaveAs_csv(("/afs/cern.ch/user/t/tmenezes/work/private/output_MonoAnalyzerPhoton/csv_file/Signaleff_"+year+"_"+mass+"_"+sys+"_"+matching+".csv").c_str(),NEvents,mass,"NoTrg");
 
-                // Triggers, Combinations for 2016/2016APV
+                // Triggers, Combinations for 2016/2016APV, 26 of SeptemberV
 		if (year == "2016" || year == "2016APV"){
 			HLT175_TrgAnalysis.WritePlots(oFile);
 			HLT175_TrgAnalysis.SignalEff("HLT_Photon175",NEvents);
